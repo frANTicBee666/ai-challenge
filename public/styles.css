@@ -1,0 +1,100 @@
+:root {
+  --bg: #0e0f13;
+  --panel: #171922;
+  --text: #e7e7ea;
+  --muted: #a1a1aa;
+  --blue: #2563eb;
+  --green: #16a34a;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: 16px;
+  border-bottom: 1px solid #232532;
+  background: var(--panel);
+}
+.brand { font-weight: 600; }
+
+.chat {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+}
+.row.user { justify-content: flex-end; }
+.row.assistant { justify-content: flex-start; }
+
+.bubble {
+  max-width: min(80%, 720px);
+  padding: 10px 12px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.bubble.user {
+  background: var(--blue);
+  color: white;
+  border-top-right-radius: 4px;
+}
+.bubble.assistant {
+  background: var(--green);
+  color: white;
+  border-top-left-radius: 4px;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: var(--panel);
+  border-top: 1px solid #232532;
+}
+.composer input {
+  flex: 1;
+  padding: 12px;
+  background: #0f1117;
+  border: 1px solid #232532;
+  border-radius: 8px;
+  color: var(--text);
+}
+.composer button {
+  background: var(--blue);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 16px;
+  cursor: pointer;
+}
+.composer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.thinking {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0 4px 6px 4px;
+}
+
+
