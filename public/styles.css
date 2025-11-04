@@ -1,10 +1,33 @@
 :root {
+  /* Dark theme (default) */
   --bg: #0e0f13;
   --panel: #171922;
   --text: #e7e7ea;
+  --text-invert: #0b0c10;
   --muted: #a1a1aa;
-  --blue: #2563eb;
-  --green: #16a34a;
+  /* Pastel-ish bubble colors on dark */
+  --user-bubble: #60a5fa;       /* soft blue */
+  --assistant-bubble: #86efac;  /* soft green */
+  --input-bg: #0f1117;
+  --input-border: #232532;
+  --button-bg: #3b82f6;
+  --button-text: #ffffff;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --text: #111827;
+  --text-invert: #ffffff;
+  --muted: #6b7280;
+  /* Lighter pastels for light */
+  --user-bubble: #dbeafe;       /* very light blue */
+  --assistant-bubble: #dcfce7;  /* very light green */
+  --input-bg: #ffffff;
+  --input-border: #e5e7eb;
+  --button-bg: #2563eb;
+  --button-text: #ffffff;
 }
 
 * { box-sizing: border-box; }
@@ -26,8 +49,57 @@ body {
   padding: 16px;
   border-bottom: 1px solid #232532;
   background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .brand { font-weight: 600; }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 13px;
+}
+.theme-toggle .toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-text { color: var(--muted); }
+
+/* Toggle visuals */
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  background: #3a3d4a;
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+[data-theme="light"] .toggle-track {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+/* When checked move thumb to the right and tweak colors */
+.theme-toggle .toggle-input:checked + .toggle-track {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.theme-toggle .toggle-input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(20px);
+}
 
 .chat {
   flex: 1;
@@ -53,13 +125,13 @@ body {
   word-wrap: break-word;
 }
 .bubble.user {
-  background: var(--blue);
-  color: white;
+  background: var(--user-bubble);
+  color: var(--text-invert);
   border-top-right-radius: 4px;
 }
 .bubble.assistant {
-  background: var(--green);
-  color: white;
+  background: var(--assistant-bubble);
+  color: var(--text-invert);
   border-top-left-radius: 4px;
 }
 
@@ -73,14 +145,14 @@ body {
 .composer input {
   flex: 1;
   padding: 12px;
-  background: #0f1117;
-  border: 1px solid #232532;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   color: var(--text);
 }
 .composer button {
-  background: var(--blue);
-  color: white;
+  background: var(--button-bg);
+  color: var(--button-text);
   border: 0;
   border-radius: 8px;
   padding: 0 16px;
