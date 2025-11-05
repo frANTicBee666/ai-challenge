@@ -19,11 +19,13 @@
   --bg: #f8fafc;
   --panel: #ffffff;
   --text: #111827;
-  --text-invert: #ffffff;
+  /* Use dark text on light bubbles for better contrast */
+  --text-invert: #111827;
   --muted: #6b7280;
   /* Lighter pastels for light */
-  --user-bubble: #dbeafe;       /* very light blue */
-  --assistant-bubble: #dcfce7;  /* very light green */
+  /* Make bubbles brighter/more saturated to avoid blending with white panel */
+  --user-bubble: #93c5fd;       /* blue-300 */
+  --assistant-bubble: #86efac;  /* green-300 */
   --input-bg: #ffffff;
   --input-border: #e5e7eb;
   --button-bg: #2563eb;
@@ -54,6 +56,17 @@ body {
   justify-content: space-between;
 }
 .brand { font-weight: 600; }
+.settings-btn {
+  margin-left: auto;
+  margin-right: 0;
+  margin-inline-start: 12px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
 
 .theme-toggle {
   display: inline-flex;
@@ -167,6 +180,72 @@ body {
   font-size: 12px;
   color: var(--muted);
   padding: 0 4px 6px 4px;
+}
+
+/* Modal */
+.modal.hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-card {
+  width: min(720px, 100%);
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--input-border);
+}
+.icon-btn {
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  cursor: pointer;
+  font-size: 18px;
+}
+.settings-form { padding: 16px; display: grid; gap: 16px; }
+.settings-form fieldset { border: 1px solid var(--input-border); border-radius: 8px; padding: 12px; }
+.settings-form legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
+.settings-form .radio { display: inline-flex; gap: 6px; align-items: center; margin-right: 12px; }
+.settings-form .block { display: grid; gap: 6px; }
+.settings-form textarea, .settings-form input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  color: var(--text);
+}
+.settings-form input[type="range"] { width: 100%; }
+.temp-readout { color: var(--muted); font-size: 12px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-actions .secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.modal-actions .primary {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
 }
 
 

@@ -17,6 +17,7 @@
           </span>
           <span class="toggle-text">Светлая тема</span>
         </label>
+        <button id="open-settings" class="settings-btn" type="button">Настройки</button>
       </header>
 
       <main class="chat" id="chat"></main>
@@ -25,6 +26,57 @@
         <input id="input" type="text" placeholder="Введите вопрос…" autocomplete="off" required />
         <button type="submit">Отправить</button>
       </form>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="settings-title">Настройки агента</h2>
+          <button id="close-settings" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
+        </div>
+
+        <form id="settings-form" class="settings-form">
+          <fieldset>
+            <legend>Формат ответа</legend>
+            <label class="radio">
+              <input type="radio" name="format" value="json" /> JSON
+            </label>
+            <label class="radio">
+              <input type="radio" name="format" value="xml" /> XML
+            </label>
+            <label class="radio">
+              <input type="radio" name="format" value="plain" /> Plain text
+            </label>
+          </fieldset>
+
+          <label class="block">
+            <span>Схема/уточнение формата</span>
+            <textarea name="schema" rows="5" placeholder="Опишите структуру: список полей, пример JSON/XML или правила форматирования"></textarea>
+          </label>
+
+          <fieldset>
+            <legend>Когда отправлять системное сообщение</legend>
+            <label class="radio">
+              <input type="radio" name="sendMode" value="on_save" /> Один раз при сохранении настроек
+            </label>
+            <label class="radio">
+              <input type="radio" name="sendMode" value="each_message" /> При каждом новом сообщении
+            </label>
+          </fieldset>
+
+          <label class="block">
+            <span>Temperature (0.0 — 1.0)</span>
+            <input type="range" name="temperature" min="0" max="1" step="0.1" />
+            <div class="temp-readout"><span id="temp-value">0.7</span></div>
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="cancel-settings" class="secondary">Отмена</button>
+            <button type="submit" class="primary">Сохранить</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script src="/script.js" type="module"></script>
