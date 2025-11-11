@@ -44,19 +44,13 @@ if (themeToggleEl) {
 }
 
 // ===================== Settings =====================
-const SETTINGS_KEY = 'ygpt_settings_v1';
+const SETTINGS_KEY = 'ygpt_settings_v2';
 function defaultSettings() {
   return {
-    format: 'plain',            // 'json' | 'xml' | 'plain'
-    schema: '',
+    systemPrompt: '',
     sendMode: 'each_message',   // 'on_save' | 'each_message'
     temperature: 0.7,
   };
-}
-
-function formatDefaultTemperature(format) {
-  if (format === 'json' || format === 'xml') return 0.2;
-  return 0.7; // plain text
 }
 
 function loadSettings() {
@@ -74,24 +68,6 @@ function saveSettings(settings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
-function buildSystemMessage(settings) {
-  const { format, schema } = settings;
-  let header = '';
-  if (format === 'json') header = 'Ответ возвращай строго в формате JSON.';
-  else if (format === 'xml') header = 'Ответ возвращай строго в формате XML.';
-  else header = 'Ответ возвращай простым текстом (plain text).';
-
-  const schemaPart = schema?.trim()
-    ? ` Используй следующую схему/уточнение формата: ${schema.trim()}`
-    : '';
-
-  const post = format === 'plain'
-    ? ' Избегай лишних префиксов и пояснений.'
-    : ' Не добавляй комментарии до/после и не изменяй структуру. Возвращай только валидные данные указанного формата.';
-
-  return `${header}${schemaPart}${post}`;
-}
-
 let settings = loadSettings();
 
 function openSettings() {
@@ -100,13 +76,8 @@ function openSettings() {
   const form = settingsFormEl;
   if (!form) return;
 
-  const formatInputs = form.elements.namedItem('format');
-  if (formatInputs) {
-    const list = Array.isArray(formatInputs) ? formatInputs : [formatInputs];
-    list.forEach((i) => { if (i.value === settings.format) i.checked = true; });
-  }
-  const schemaInput = form.elements.namedItem('schema');
-  if (schemaInput) schemaInput.value = settings.schema || '';
+  const systemPromptInput = form.elements.namedItem('systemPrompt');
+  if (systemPromptInput) systemPromptInput.value = settings.systemPrompt || '';
   const sendModeInputs = form.elements.namedItem('sendMode');
   if (sendModeInputs) {
     const list = Array.isArray(sendModeInputs) ? sendModeInputs : [sendModeInputs];
@@ -130,20 +101,6 @@ openSettingsBtn?.addEventListener('click', openSettings);
 closeSettingsBtn?.addEventListener('click', closeSettings);
 cancelSettingsBtn?.addEventListener('click', closeSettings);
 
-// Auto-adjust temperature when format changes
-settingsFormEl?.addEventListener('change', (e) => {
-  const target = e.target;
-  if (!(target instanceof HTMLInputElement)) return;
-  if (target.name === 'format') {
-    const tempInput = settingsFormEl.elements.namedItem('temperature');
-    const newDefault = formatDefaultTemperature(target.value);
-    if (tempInput) {
-      tempInput.value = String(newDefault);
-      if (tempValueEl) tempValueEl.textContent = String(newDefault);
-    }
-  }
-});
-
 // Show temperature value
 settingsFormEl?.addEventListener('input', (e) => {
   const target = e.target;
@@ -156,22 +113,38 @@ settingsFormEl?.addEventListener('input', (e) => {
 settingsFormEl?.addEventListener('submit', (e) => {
   e.preventDefault();
   const form = settingsFormEl;
-  const format = form.elements.namedItem('format').value || 'plain';
-  const schema = form.elements.namedItem('schema').value || '';
+  const systemPrompt = form.elements.namedItem('systemPrompt').value || '';
   const sendMode = form.elements.namedItem('sendMode').value || 'each_message';
   const temperature = parseFloat(form.elements.namedItem('temperature').value || '0.7');
 
-  settings = { format, schema, sendMode, temperature };
+  settings = { systemPrompt, sendMode, temperature };
   saveSettings(settings);
 
+  // Helper to remove any previously pinned system messages
+  const removeSystemMessages = () => {
+    let removed = false;
+    for (let i = conversation.length - 1; i >= 0; i -= 1) {
+      if (conversation[i].role === 'system') {
+        conversation.splice(i, 1);
+        removed = true;
+      }
+    }
+    return removed;
+  };
+
   if (settings.sendMode === 'on_save') {
-    // Pin system message into the conversation once
-    const sys = buildSystemMessage(settings);
-    // Avoid duplicating if the last system is identical
-    const lastSystemIndex = [...conversation].reverse().findIndex((m) => m.role === 'system');
-    if (lastSystemIndex === -1 || conversation[conversation.length - 1 - lastSystemIndex]?.content !== sys) {
-      conversation.push({ role: 'system', content: sys });
-      addBubble('assistant', 'Системные настройки применены.');
+    const trimmed = settings.systemPrompt.trim();
+    if (trimmed) {
+      // Pin system message into the conversation once (idempotent)
+      const lastSystemIndex = [...conversation].reverse().findIndex((m) => m.role === 'system');
+      if (lastSystemIndex === -1 || conversation[conversation.length - 1 - lastSystemIndex]?.content !== trimmed) {
+        conversation.push({ role: 'system', content: trimmed });
+        addBubble('assistant', 'Системные настройки применены.');
+      }
+    } else {
+      // System prompt cleared: ensure no system messages remain
+      const had = removeSystemMessages();
+      if (had) addBubble('assistant', 'Системный промпт очищен. Системные сообщения удалены.');
     }
   }
 
@@ -218,10 +191,11 @@ formEl.addEventListener('submit', async (e) => {
   const thinkingRow = addThinking();
 
   try {
-    // Build message list depending on sendMode
+    // Build message list - send full conversation history
     const messages = [...conversation];
-    if (settings.sendMode === 'each_message') {
-      messages.unshift({ role: 'system', content: buildSystemMessage(settings) });
+    // Add system prompt if mode is 'each_message' and prompt is set
+    if (settings.sendMode === 'each_message' && settings.systemPrompt?.trim()) {
+      messages.unshift({ role: 'system', content: settings.systemPrompt.trim() });
     }
 
     const resp = await fetch('/api/chat', {

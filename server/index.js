@@ -49,6 +49,16 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Server misconfiguration: missing YANDEX_API_KEY or YANDEX_FOLDER_ID' });
     }
 
+      // Determine temperature: coerce to number and clamp to [0, 1]
+      let computedTemperature = 0.3;
+      if (typeof temperature === 'number') {
+        computedTemperature = temperature;
+      } else if (typeof temperature === 'string' && temperature.trim() !== '' && !Number.isNaN(Number(temperature))) {
+        computedTemperature = Number(temperature);
+      }
+      if (computedTemperature < 0) computedTemperature = 0;
+      if (computedTemperature > 1) computedTemperature = 1;
+
     // Build request to Yandex Foundation Models API
     // Docs: https://cloud.yandex.ru/docs/foundation-models/ (modelUri and schema)
     const modelUri = `gpt://${folderId}/yandexgpt/latest`;
@@ -62,11 +72,21 @@ app.post('/api/chat', async (req, res) => {
       modelUri,
       completionOptions: {
         stream: false,
-        temperature: typeof temperature === 'number' ? temperature : 0.3,
+          temperature: computedTemperature,
         maxTokens: typeof maxTokens === 'number' ? maxTokens : 800,
       },
       messages: ycMessages,
     };
+
+      // Log outgoing request details (without secrets)
+      // eslint-disable-next-line no-console
+      console.log('[LLM Request] modelUri:', modelUri);
+      // eslint-disable-next-line no-console
+      console.log('[LLM Request] req.body.temperature:', temperature, '=> used:', computedTemperature);
+      // eslint-disable-next-line no-console
+      console.log('[LLM Request] completionOptions:', payload.completionOptions);
+      // eslint-disable-next-line no-console
+      console.log('[LLM Request] messages:', ycMessages);
 
     const ycResp = await fetch(url, {
       method: 'POST',
@@ -77,6 +97,9 @@ app.post('/api/chat', async (req, res) => {
       },
       body: JSON.stringify(payload),
     });
+
+      // eslint-disable-next-line no-console
+      console.log('[LLM Response] status:', ycResp.status);
 
     if (!ycResp.ok) {
       const errText = await ycResp.text();
@@ -96,7 +119,7 @@ app.post('/api/chat', async (req, res) => {
       // fallthrough
     }
 
-    res.json({ reply: assistantText, raw: data });
+      res.json({ reply: assistantText, usedTemperature: computedTemperature, raw: data });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Chat error:', err);
